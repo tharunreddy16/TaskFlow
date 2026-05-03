@@ -5,9 +5,9 @@ import { Avatar, Badge, Modal, Field, Btn, Spinner, Empty } from '../components/
 import { useAuth } from '../context/AuthContext';
 
 const STATUS_COLS = [
-  { id: 'todo',        label: 'To Do',       color: 'var(--text-muted)' },
-  { id: 'in_progress', label: 'In Progress',  color: 'var(--blue)' },
-  { id: 'done',        label: 'Done',         color: 'var(--green)' },
+  { id: 'todo',        label: 'To Do',      color: '#9ca3af', glow: 'rgba(156,163,175,0.3)' },
+  { id: 'in_progress', label: 'In Progress', color: '#60a5fa', glow: 'rgba(96,165,250,0.3)' },
+  { id: 'done',        label: 'Done',        color: '#34d399', glow: 'rgba(52,211,153,0.3)' },
 ];
 
 export default function TasksPage({ toast }) {
@@ -27,7 +27,6 @@ export default function TasksPage({ toast }) {
 
   const set = key => val => setForm(f => ({ ...f, [key]: val }));
 
-  // Load projects list
   useEffect(() => {
     api.get('/projects').then(({ data }) => {
       setProjects(data);
@@ -35,7 +34,6 @@ export default function TasksPage({ toast }) {
     }).catch(() => toast('Failed to load projects', 'error')).finally(() => setLoading(false));
   }, []); // eslint-disable-line
 
-  // Load tasks when project changes
   const loadTasks = useCallback(async (projId) => {
     if (!projId) return;
     setTaskLoading(true);
@@ -54,7 +52,6 @@ export default function TasksPage({ toast }) {
   const project = projects.find(p => p._id === selectedId);
   const myMember = project?.members.find(m => m.user._id === user._id || m.user === user._id);
   const isAdmin = myMember?.role === 'admin';
-
   const filtered = filter === 'all' ? tasks : tasks.filter(t => t.status === filter);
 
   const resetForm = () => setForm({ title: '', description: '', priority: 'medium', dueDate: '', assignedTo: '' });
@@ -121,79 +118,92 @@ export default function TasksPage({ toast }) {
     });
   };
 
-  if (loading) return <div style={{ display: 'flex', justifyContent: 'center', marginTop: 80 }}><Spinner /></div>;
+  if (loading) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}><Spinner /></div>;
+
   if (projects.length === 0) return (
-    <div style={{ padding: '32px 36px', fontFamily: "'DM Sans', system-ui", color: 'var(--text)' }}>
+    <div style={{ padding: '40px', fontFamily: "'Inter', system-ui", color: 'var(--text)' }}>
       <Empty icon="📁" text="No projects yet. Create a project first, then add tasks." />
     </div>
   );
 
   return (
-    <div style={{ padding: '32px 36px', animation: 'fadeUp 0.3s ease', fontFamily: "'DM Sans', system-ui, sans-serif", color: 'var(--text)' }}>
+    <div style={{ padding: '40px', animation: 'fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1)', fontFamily: "'Inter', system-ui, sans-serif", color: 'var(--text)' }}>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 22 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 36 }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-            {project && <span style={{ width: 10, height: 10, borderRadius: '50%', background: project.color, flexShrink: 0, display: 'inline-block' }} />}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 8 }}>
+            {project && <span style={{ width: 14, height: 14, borderRadius: '50%', background: project.color, boxShadow: `0 0 12px ${project.color}`, flexShrink: 0 }} />}
             <select value={selectedId} onChange={e => { setSelectedId(e.target.value); setFilter('all'); }}
-              style={{ background: 'transparent', border: 'none', color: 'var(--text)', fontSize: 22, fontWeight: 600, cursor: 'pointer', outline: 'none', fontFamily: 'inherit', letterSpacing: '-0.3px' }}>
-              {projects.map(p => <option key={p._id} value={p._id} style={{ background: 'var(--surface)' }}>{p.name}</option>)}
+              style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: 32, fontWeight: 800, cursor: 'pointer', outline: 'none', fontFamily: 'Outfit', letterSpacing: '-1px', appearance: 'none' }}>
+              {projects.map(p => <option key={p._id} value={p._id} style={{ background: '#0a0a0f' }}>{p.name}</option>)}
             </select>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
-          <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>
-            {tasks.length} task{tasks.length !== 1 ? 's' : ''} · {project?.members.length} member{project?.members.length !== 1 ? 's' : ''}
-            {isAdmin && <span style={{ color: 'var(--accent)', marginLeft: 8 }}>· Admin</span>}
+          <p style={{ color: 'var(--text-muted)', fontSize: 15 }}>
+            {tasks.length} task{tasks.length !== 1 ? 's' : ''}
+            {' · '}{project?.members.length} member{project?.members.length !== 1 ? 's' : ''}
+            {isAdmin && <span style={{ color: '#a78bfa', marginLeft: 8, fontWeight: 600, fontSize: 13 }}>· Admin</span>}
           </p>
         </div>
-        {isAdmin && <Btn onClick={() => { resetForm(); setShowNew(true); }}>+ Add task</Btn>}
+        {isAdmin && (
+          <Btn onClick={() => { resetForm(); setShowNew(true); }} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 18 }}>+</span> Add Task
+          </Btn>
+        )}
       </div>
 
-      {/* Filter tabs */}
-      <div style={{ display: 'flex', gap: 4, marginBottom: 20, background: 'var(--surface)', borderRadius: 10, padding: 4, width: 'fit-content' }}>
-        {[['all', 'All'], ...STATUS_COLS.map(c => [c.id, c.label])].map(([id, label]) => (
-          <button key={id} onClick={() => setFilter(id)} style={{
-            padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
-            fontSize: 13, fontWeight: 500, transition: 'all 0.12s', fontFamily: 'inherit',
-            background: filter === id ? 'var(--surface-high)' : 'transparent',
-            color: filter === id ? 'var(--text)' : 'var(--text-muted)',
-          }}>
-            {label}
-            <span style={{ fontSize: 11, opacity: 0.7, marginLeft: 4 }}>
-              {id === 'all' ? tasks.length : tasks.filter(t => t.status === id).length}
-            </span>
-          </button>
-        ))}
+      {/* Filter Pills */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 28, flexWrap: 'wrap' }}>
+        {[['all', 'All'], ...STATUS_COLS.map(c => [c.id, c.label])].map(([id, label]) => {
+          const count = id === 'all' ? tasks.length : tasks.filter(t => t.status === id).length;
+          const isActive = filter === id;
+          return (
+            <button key={id} onClick={() => setFilter(id)} style={{
+              padding: '8px 18px', borderRadius: 30, border: isActive ? '1px solid rgba(139,92,246,0.4)' : '1px solid rgba(255,255,255,0.08)', cursor: 'pointer',
+              fontSize: 14, fontWeight: isActive ? 600 : 400, transition: 'all 0.2s', fontFamily: 'inherit',
+              background: isActive ? 'rgba(139,92,246,0.15)' : 'rgba(255,255,255,0.02)',
+              color: isActive ? '#a78bfa' : 'var(--text-muted)',
+              boxShadow: isActive ? '0 0 20px rgba(139,92,246,0.2)' : 'none',
+            }}>
+              {label}
+              <span style={{ fontSize: 12, marginLeft: 8, opacity: 0.7, background: 'rgba(255,255,255,0.1)', padding: '1px 7px', borderRadius: 10 }}>{count}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Kanban board */}
       {taskLoading
-        ? <div style={{ display: 'flex', justifyContent: 'center', marginTop: 40 }}><Spinner /></div>
+        ? <div style={{ display: 'flex', justifyContent: 'center', marginTop: 60 }}><Spinner /></div>
         : (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 20 }}>
             {STATUS_COLS.map(col => {
               const colTasks = filter === 'all'
                 ? tasks.filter(t => t.status === col.id)
                 : filtered.filter(t => t.status === col.id);
               return (
                 <div key={col.id}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: col.color, display: 'inline-block' }} />
-                    <span style={{ fontSize: 12, fontWeight: 600, color: col.color, textTransform: 'uppercase', letterSpacing: '0.8px' }}>{col.label}</span>
-                    <span style={{ fontSize: 11, background: 'var(--surface-high)', color: 'var(--text-muted)', borderRadius: 20, padding: '1px 7px' }}>{colTasks.length}</span>
+                  {/* Column Header */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, padding: '0 4px' }}>
+                    <span style={{ width: 10, height: 10, borderRadius: '50%', background: col.color, boxShadow: `0 0 8px ${col.glow}` }} />
+                    <span style={{ fontSize: 13, fontWeight: 700, color: col.color, textTransform: 'uppercase', letterSpacing: '1px' }}>{col.label}</span>
+                    <span style={{ fontSize: 12, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', color: 'var(--text-muted)', borderRadius: 20, padding: '2px 10px', fontWeight: 600 }}>{colTasks.length}</span>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                     {colTasks.length === 0 && (
-                      <div style={{ border: '1px dashed var(--border)', borderRadius: 10, padding: '20px', textAlign: 'center', color: 'var(--text-dim)', fontSize: 12 }}>
-                        No tasks
+                      <div style={{ border: '1px dashed rgba(255,255,255,0.06)', borderRadius: 16, padding: '28px 20px', textAlign: 'center', color: 'var(--text-dim)', fontSize: 13 }}>
+                        Drop tasks here
                       </div>
                     )}
-                    {colTasks.map(task => (
-                      <TaskCard key={task._id} task={task} colColor={col.color}
+                    {colTasks.map((task, i) => (
+                      <TaskCard key={task._id} task={task} col={col}
                         isAdmin={isAdmin}
                         isAssignee={task.assignedTo?._id === user._id || task.assignedTo === user._id}
                         onStatusChange={updateStatus}
                         onDelete={deleteTask}
                         onEdit={openEdit}
+                        delay={i * 0.05}
                       />
                     ))}
                   </div>
@@ -203,25 +213,22 @@ export default function TasksPage({ toast }) {
           </div>
         )}
 
-      {/* Team members panel */}
+      {/* Team Members Panel */}
       {project && (
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 22, marginTop: 20 }}>
-          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 14 }}>Team members</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div className="glass-card" style={{ padding: 28, marginTop: 28 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 20 }}>Team Members</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12 }}>
             {project.members.map((m, i) => {
               const memberTasks = tasks.filter(t => t.assignedTo?._id === m.user._id || t.assignedTo === m.user._id);
               const done = memberTasks.filter(t => t.status === 'done').length;
               return (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: 'var(--bg)', borderRadius: 9 }}>
-                  <Avatar name={m.user?.name || '?'} size={30} />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13, fontWeight: 500 }}>{m.user?.name}</div>
-                    <div style={{ fontSize: 11, color: 'var(--text-dim)' }}>{m.user?.email}</div>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14 }}>
+                  <Avatar name={m.user?.name || '?'} size={36} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.user?.name}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{done}/{memberTasks.length} tasks done</div>
                   </div>
                   <Badge type={m.role} />
-                  <span style={{ fontSize: 12, color: 'var(--text-dim)', minWidth: 60, textAlign: 'right' }}>
-                    {done}/{memberTasks.length} done
-                  </span>
                 </div>
               );
             })}
@@ -231,25 +238,25 @@ export default function TasksPage({ toast }) {
 
       {/* ── Create Task Modal ── */}
       {showNew && (
-        <Modal title="New task" onClose={() => setShowNew(false)}>
+        <Modal title="New Task" onClose={() => setShowNew(false)}>
           <Field label="Title" value={form.title} onChange={set('title')} placeholder="What needs to be done?" required />
-          <Field label="Description" value={form.description} onChange={set('description')} placeholder="Optional details" />
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <Field label="Description" value={form.description} onChange={set('description')} placeholder="Optional details…" />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             <div>
               <label style={labelStyle}>Priority</label>
               <select value={form.priority} onChange={e => set('priority')(e.target.value)} style={selectStyle}>
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
+                <option value="low">🟢 Low</option>
+                <option value="medium">🟡 Medium</option>
+                <option value="high">🔴 High</option>
               </select>
             </div>
             <div>
-              <label style={labelStyle}>Due date</label>
+              <label style={labelStyle}>Due Date</label>
               <input type="date" value={form.dueDate} onChange={e => set('dueDate')(e.target.value)} style={selectStyle} />
             </div>
           </div>
-          <div style={{ marginBottom: 20 }}>
-            <label style={labelStyle}>Assign to</label>
+          <div style={{ marginBottom: 24 }}>
+            <label style={labelStyle}>Assign To</label>
             <select value={form.assignedTo} onChange={e => set('assignedTo')(e.target.value)} style={selectStyle}>
               <option value="">Unassigned</option>
               {project?.members.map(m => (
@@ -257,36 +264,36 @@ export default function TasksPage({ toast }) {
               ))}
             </select>
           </div>
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
             <Btn variant="ghost" onClick={() => setShowNew(false)}>Cancel</Btn>
-            <Btn onClick={createTask} disabled={saving}>{saving ? <Spinner /> : 'Create task'}</Btn>
+            <Btn onClick={createTask} disabled={saving}>{saving ? <Spinner /> : 'Create Task'}</Btn>
           </div>
         </Modal>
       )}
 
       {/* ── Edit Task Modal ── */}
       {editTask && (
-        <Modal title="Edit task" onClose={() => { setEditTask(null); resetForm(); }}>
+        <Modal title="Edit Task" onClose={() => { setEditTask(null); resetForm(); }}>
           {isAdmin ? (
             <>
               <Field label="Title" value={form.title} onChange={set('title')} placeholder="Task title" required />
               <Field label="Description" value={form.description} onChange={set('description')} placeholder="Optional details" />
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                 <div>
                   <label style={labelStyle}>Priority</label>
                   <select value={form.priority} onChange={e => set('priority')(e.target.value)} style={selectStyle}>
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
+                    <option value="low">🟢 Low</option>
+                    <option value="medium">🟡 Medium</option>
+                    <option value="high">🔴 High</option>
                   </select>
                 </div>
                 <div>
-                  <label style={labelStyle}>Due date</label>
+                  <label style={labelStyle}>Due Date</label>
                   <input type="date" value={form.dueDate} onChange={e => set('dueDate')(e.target.value)} style={selectStyle} />
                 </div>
               </div>
-              <div style={{ marginBottom: 20 }}>
-                <label style={labelStyle}>Assign to</label>
+              <div style={{ marginBottom: 24 }}>
+                <label style={labelStyle}>Assign To</label>
                 <select value={form.assignedTo} onChange={e => set('assignedTo')(e.target.value)} style={selectStyle}>
                   <option value="">Unassigned</option>
                   {project?.members.map(m => (
@@ -296,20 +303,19 @@ export default function TasksPage({ toast }) {
               </div>
             </>
           ) : (
-            /* Members can only update status */
-            <div style={{ marginBottom: 20 }}>
+            <div style={{ marginBottom: 24 }}>
               <label style={labelStyle}>Status</label>
               <select value={editTask.status} onChange={e => { updateStatus(editTask._id, e.target.value); setEditTask(null); }} style={selectStyle}>
                 <option value="todo">To Do</option>
                 <option value="in_progress">In Progress</option>
                 <option value="done">Done</option>
               </select>
-              <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 8 }}>As a member, you can only update the status of tasks assigned to you.</p>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8 }}>As a member, you can only update the status of tasks assigned to you.</p>
             </div>
           )}
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
             <Btn variant="ghost" onClick={() => { setEditTask(null); resetForm(); }}>Cancel</Btn>
-            {isAdmin && <Btn onClick={updateTask} disabled={saving}>{saving ? <Spinner /> : 'Save changes'}</Btn>}
+            {isAdmin && <Btn onClick={updateTask} disabled={saving}>{saving ? <Spinner /> : 'Save Changes'}</Btn>}
           </div>
         </Modal>
       )}
@@ -317,59 +323,71 @@ export default function TasksPage({ toast }) {
   );
 }
 
-function TaskCard({ task, colColor, isAdmin, isAssignee, onStatusChange, onDelete, onEdit }) {
+function TaskCard({ task, col, isAdmin, isAssignee, onStatusChange, onDelete, onEdit, delay }) {
   const now = new Date();
   const isOverdue = task.dueDate && task.status !== 'done' && new Date(task.dueDate) < now;
   const [menuOpen, setMenuOpen] = useState(false);
   const canEdit = isAdmin || isAssignee;
 
   return (
-    <div style={{
-      background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 11,
-      padding: '13px 14px', position: 'relative', transition: 'border-color 0.15s',
-      borderLeft: `3px solid ${colColor}`,
-    }}
-      onMouseEnter={e => e.currentTarget.style.borderColor = colColor + '80'}
-      onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+    <div
+      className="glass-card animate-fadeup"
+      style={{
+        padding: '18px 20px', position: 'relative',
+        borderLeft: `3px solid ${col.color}`,
+        borderRadius: 16,
+        animationDelay: `${delay}s`,
+        cursor: canEdit ? 'pointer' : 'default',
+      }}
+      onClick={() => canEdit && onEdit(task)}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
-        <div style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.4, flex: 1 }}>{task.title}</div>
-        <div style={{ position: 'relative', flexShrink: 0 }}>
+        <div style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.5, flex: 1, color: '#fff' }}>{task.title}</div>
+        <div style={{ position: 'relative', flexShrink: 0 }} onClick={e => e.stopPropagation()}>
           <button onClick={() => setMenuOpen(m => !m)}
-            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 16, padding: '0 4px', lineHeight: 1 }}>⋯</button>
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 16, padding: '4px 8px', lineHeight: 1, borderRadius: 8, transition: 'all 0.2s' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#fff'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+          >⋯</button>
           {menuOpen && (
             <div style={{
-              position: 'absolute', right: 0, top: '100%', background: 'var(--surface-high)',
-              border: '1px solid var(--border)', borderRadius: 9, minWidth: 168, zIndex: 50,
-              overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+              position: 'absolute', right: 0, top: 'calc(100% + 6px)',
+              background: 'rgba(15,15,20,0.95)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: 14, minWidth: 180, zIndex: 50,
+              overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
+              backdropFilter: 'blur(20px)',
             }} onMouseLeave={() => setMenuOpen(false)}>
-              <div style={{ padding: '6px 0' }}>
+              <div style={{ padding: '8px 0' }}>
                 {canEdit && (
                   <>
-                    <div style={{ padding: '4px 12px', fontSize: 10, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.8px' }}>Move to</div>
+                    <div style={{ padding: '6px 14px', fontSize: 11, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 600 }}>Move to</div>
                     {STATUS_COLS.filter(s => s.id !== task.status).map(s => (
                       <button key={s.id} onClick={() => { onStatusChange(task._id, s.id); setMenuOpen(false); }}
-                        style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', background: 'none', border: 'none', color: 'var(--text)', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
-                        onMouseEnter={e => e.currentTarget.style.background = 'var(--border)'}
+                        style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left', padding: '10px 14px', background: 'none', border: 'none', color: 'var(--text)', fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.15s' }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
                         onMouseLeave={e => e.currentTarget.style.background = 'none'}>
+                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: s.color }} />
                         {s.label}
                       </button>
                     ))}
-                    <div style={{ height: 1, background: 'var(--border)', margin: '4px 0' }} />
+                    <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '6px 0' }} />
                     <button onClick={() => { onEdit(task); setMenuOpen(false); }}
-                      style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', background: 'none', border: 'none', color: 'var(--text)', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
-                      onMouseEnter={e => e.currentTarget.style.background = 'var(--border)'}
+                      style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 14px', background: 'none', border: 'none', color: 'var(--text)', fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'none'}>
-                      Edit task
+                      ✏️ Edit task
                     </button>
                   </>
                 )}
                 {isAdmin && (
                   <>
-                    <div style={{ height: 1, background: 'var(--border)', margin: '4px 0' }} />
+                    <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '6px 0' }} />
                     <button onClick={() => { onDelete(task._id); setMenuOpen(false); }}
-                      style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', background: 'none', border: 'none', color: 'var(--red)', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
-                      Delete task
+                      style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 14px', background: 'none', border: 'none', color: '#f87171', fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.1)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'none'}>
+                      🗑 Delete task
                     </button>
                   </>
                 )}
@@ -380,26 +398,30 @@ function TaskCard({ task, colColor, isAdmin, isAssignee, onStatusChange, onDelet
       </div>
 
       {task.description && (
-        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 6, lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+        <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8, lineHeight: 1.6, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
           {task.description}
         </p>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, gap: 6, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 14, gap: 8, flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
           <Badge type={task.priority} />
-          {isOverdue && <span style={{ fontSize: 10, color: 'var(--red)', fontWeight: 700, background: 'var(--red-soft)', padding: '2px 7px', borderRadius: 20 }}>OVERDUE</span>}
+          {isOverdue && <span style={{ fontSize: 11, color: '#f87171', fontWeight: 700, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', padding: '3px 8px', borderRadius: 20, letterSpacing: '0.3px' }}>OVERDUE</span>}
           {task.dueDate && !isOverdue && (
-            <span style={{ fontSize: 11, color: 'var(--text-dim)' }}>
-              {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            <span style={{ fontSize: 12, color: 'var(--text-muted)', background: 'rgba(255,255,255,0.04)', padding: '3px 8px', borderRadius: 20, border: '1px solid rgba(255,255,255,0.06)' }}>
+              📅 {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
             </span>
           )}
         </div>
-        {task.assignedTo && <Avatar name={task.assignedTo.name} size={22} />}
+        {task.assignedTo && (
+          <div title={task.assignedTo.name}>
+            <Avatar name={task.assignedTo.name} size={26} />
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-const labelStyle = { display: 'block', color: 'var(--text-muted)', fontSize: 11, fontWeight: 600, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' };
-const selectStyle = { width: '100%', padding: '9px 11px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 9, color: 'var(--text)', fontSize: 13, outline: 'none', fontFamily: 'inherit', marginBottom: 16 };
+const labelStyle = { display: 'block', color: 'var(--text-muted)', fontSize: 12, fontWeight: 600, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.8px' };
+const selectStyle = { width: '100%', padding: '12px 14px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, color: '#fff', fontSize: 14, outline: 'none', fontFamily: 'inherit', marginBottom: 20, transition: 'all 0.2s' };

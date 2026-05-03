@@ -5,6 +5,7 @@ import { ToastContainer } from './components/UI';
 import Layout from './components/Layout';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
+import LandingPage from './pages/LandingPage';
 import DashboardPage from './pages/DashboardPage';
 import ProjectsPage from './pages/ProjectsPage';
 import TasksPage from './pages/TasksPage';
@@ -16,7 +17,7 @@ function Protected({ children }) {
   return children;
 }
 
-// ── Public route: redirect logged-in users to dashboard ─────────────────────
+// ── Public route: redirect logged-in users away from auth pages ──────────────
 function PublicOnly({ children }) {
   const { user } = useAuth();
   if (user) return <Navigate to="/dashboard" replace />;
@@ -30,17 +31,20 @@ function AppRoutes() {
   return (
     <>
       <Routes>
-        {/* Public */}
+        {/* Home / Landing */}
+        <Route path="/" element={<LandingPage />} />
+
+        {/* Public Auth */}
         <Route path="/login"  element={<PublicOnly><LoginPage  toast={toast} /></PublicOnly>} />
         <Route path="/signup" element={<PublicOnly><SignupPage toast={toast} /></PublicOnly>} />
 
-        {/* Protected */}
+        {/* Protected App */}
         <Route path="/dashboard" element={<Protected><Layout><DashboardPage toast={toast} /></Layout></Protected>} />
         <Route path="/projects"  element={<Protected><Layout><ProjectsPage  toast={toast} /></Layout></Protected>} />
         <Route path="/tasks"     element={<Protected><Layout><TasksPage     toast={toast} /></Layout></Protected>} />
 
         {/* Fallback */}
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
       <ToastContainer toasts={toasts} />
