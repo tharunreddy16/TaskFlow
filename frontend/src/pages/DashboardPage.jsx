@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { Avatar, Badge, RingChart, ProgressBar, Spinner, Empty } from '../components/UI';
+import { useAuth } from '../context/AuthContext';
 
 export default function DashboardPage({ toast }) {
+  const { user } = useAuth();
   const [overall, setOverall] = useState(null);
   const [projects, setProjects] = useState([]);
   const [recentTasks, setRecentTasks] = useState([]);
