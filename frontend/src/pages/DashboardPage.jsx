@@ -53,8 +53,10 @@ export default function DashboardPage({ toast }) {
     <div style={{ padding: '40px', animation: 'fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1)', fontFamily: "'Inter', system-ui, sans-serif" }}>
       <div style={{ marginBottom: 40, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
         <div>
-          <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-1px', marginBottom: 8, background: 'linear-gradient(to right, #fff, #a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Overview</h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: 16 }}>Your team's mission control center.</p>
+          <h1 style={{ fontSize: 42, fontWeight: 800, letterSpacing: '-1.5px', marginBottom: 8, background: 'linear-gradient(to right, #fff, #a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontFamily: 'Outfit' }}>
+            Welcome, {user?.name?.split(' ')[0] || 'User'}!
+          </h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: 18, fontWeight: 400 }}>Here's what's happening with your workspace today.</p>
         </div>
       </div>
 
